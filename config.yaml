@@ -1,0 +1,74 @@
+# ===== 트레이딩 봇 설정 =====
+# 이 값들은 결과에 항상 함께 출력됩니다.
+
+account:
+  risk_per_trade: 0.01        # 거래당 자기자본 위험 (1%)
+  max_drawdown_stop: 0.10     # 고점 대비 낙폭 정지선 (10%)
+
+costs:
+  commission_bps: 0.0         # Alpaca 수수료 무료 → 0
+  slippage_bps: 5.0           # 슬리피지 기본 가정 (0.05%)
+
+risk_indicators:
+  atr_period: 14
+
+assets:
+  SPY:
+    strategy: mean_reversion
+    timeframe: "15Min"
+    params: { sma_period: 20, entry_std: 1.5 }
+    session: us_equity
+  QQQ:
+    strategy: mean_reversion
+    timeframe: "15Min"
+    params: { sma_period: 20, entry_std: 1.8 }
+    session: us_equity
+  "BTC/USD":
+    strategy: breakout
+    timeframe: "1Hour"
+    params: { lookback: 20, vol_mult: 1.5, atr_mult: 2.0 }
+    session: crypto_24h
+  GLD:
+    strategy: trend_following
+    timeframe: "4Hour"
+    params: { fast_ema: 50, slow_ema: 200, atr_mult: 3.0 }
+    session: us_equity
+    note: "원자재 선물이 아니라 금 ETF 대리 자산"
+  USO:
+    strategy: trend_following
+    timeframe: "4Hour"
+    params: { fast_ema: 50, slow_ema: 200, atr_mult: 3.0 }
+    session: us_equity
+    note: "원자재 선물이 아니라 원유 ETF 대리 자산"
+
+correlation_filter:
+  # SPY와 QQQ가 둘 다 롱이면 BTC/USD 신규 롱 금지
+  block_btc_long_when_spy_qqq_long: true
+
+telegram:
+  morning_hour: 7
+  evening_hour: 21
+  max_words: 200
+
+# ===== 오버레이(방어) 운영 자산 =====
+# 원칙: 선별(screen) + 워크포워드(overlaywf) 를 모두 통과한 것만 편입한다.
+# 자산당 균등 배분. 8개 → 각 12.5%
+overlay_assets:
+  # --- 코인 (24시간 거래) ---
+  - "BTC/USD"      # 낙폭 41%↓, 칼마 3.60→5.26, WF 2/4
+  - "ETH/USD"      # 낙폭 44%↓, 칼마 0.14→2.48, WF 3/4
+  - "XRP/USD"      # 낙폭 32%↓, 칼마 0.99→2.92, 데이터 짧음(관찰)
+  # --- 미국 ETF (장중 거래) ---
+  - "QQQ"          # 기술·성장, 칼마 2.27→8.17, WF 2/2 (최고 성적)
+  - "SPY"          # 미국 대형주, 칼마 2.57→5.54, WF 1/2
+  - "IWM"          # 중소형주(대형주와 다른 흐름), 칼마 0.88→2.13, WF 1/2
+  - "XLC"          # 통신·미디어 섹터, 칼마 0.57→5.87, WF 1/2
+  - "INDA"         # 인도(신흥국 분산), 칼마 0.15→0.43, WF 1/2
+
+# 검증 탈락 기록 (재검토 시 참고)
+#   VGK(유럽) WF 0/2 — 두 구간 다 칼마 악화
+#   EWJ(일본) WF 0/2 — 둘째 구간 낙폭 오히려 증가
+#   VTI — SPY 와 중복(분산 효과 없음)
+#   GLD/TLT/EFA/DBC — 방어 효과 없거나 역효과
+#   LTC/BCH — 칼마 악화·낙폭 증가
+#   TRUMP/PEPE — 데이터 부족 착시, SHIB/GRT — 유동성·구조적 손실

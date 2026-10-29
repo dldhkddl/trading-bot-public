@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자동매매 봇 기획안</title>
+<style>
+  :root{color-scheme:dark;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"Malgun Gothic",sans-serif;
+    background:#0d1117;color:#e6edf3;padding:28px;line-height:1.6;max-width:1100px;margin:0 auto;}
+  h1{font-size:24px;margin:0 0 4px;}
+  h2{font-size:17px;margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid #30363d;color:#c9d1d9;}
+  .sub{color:#8b949e;font-size:14px;margin-bottom:20px;}
+  .vision{background:#161b22;border:1px solid #30363d;border-left:3px solid #58a6ff;
+    border-radius:8px;padding:14px 16px;font-size:14px;margin-bottom:24px;}
+  /* 진행률 */
+  .prog-wrap{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px;margin-bottom:8px;}
+  .prog-bar{height:14px;background:#21262d;border-radius:8px;overflow:hidden;margin:10px 0 6px;}
+  .prog-fill{height:100%;background:linear-gradient(90deg,#3fb950,#58a6ff);}
+  .prog-legend{font-size:12px;color:#8b949e;}
+  /* 배지 */
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;vertical-align:middle;}
+  .b-done{background:#12261a;color:#3fb950;}
+  .b-part{background:#2b2410;color:#d29922;}
+  .b-todo{background:#21262d;color:#8b949e;}
+  .b-block{background:#2d1114;color:#f85149;}
+  /* 기능 카드 */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+  .card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px;}
+  .card h3{margin:0 0 4px;font-size:15px;}
+  .card .file{font-size:11px;color:#6e7681;font-family:ui-monospace,Consolas,monospace;margin-bottom:8px;}
+  .card p{margin:6px 0 0;font-size:13px;color:#c9d1d9;}
+  .card .why{margin-top:8px;font-size:12px;color:#8b949e;border-top:1px dashed #30363d;padding-top:8px;}
+  /* 표 */
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #21262d;vertical-align:top;}
+  th{color:#8b949e;font-weight:600;font-size:12px;}
+  .pri{font-weight:700;}
+  .p1{color:#f85149;} .p2{color:#d29922;} .p3{color:#8b949e;}
+  .note{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px;font-size:13px;color:#c9d1d9;margin-top:10px;}
+  .foot{color:#6e7681;font-size:12px;margin-top:28px;border-top:1px solid #30363d;padding-top:14px;}
+  ul{margin:6px 0;padding-left:18px;} li{margin:3px 0;font-size:13px;}
+</style></head>
+<body>
+
+<h1>🤖 클로드 코드 자동매매 봇 — 기획안</h1>
+<div class="sub">작성 관점: Product Manager (Alex) · 상태: 검증 골격 완료 / 실거래 미완 · 2026-08-03</div>
+
+<div class="vision">
+<b>한 줄 비전.</b> "차트를 안 보고, 안전장치가 지켜주는 자동매매 봇을 내 손으로 만들고 —
+백테스트·모의투자로 <u>우위가 있는지 먼저 증명한 뒤에만</u> 실계좌로 넘어간다."
+성과 기준은 '월 얼마'가 아니라 <u>'검증을 통과했는가'</u>다.
+</div>
+
+<div class="prog-wrap">
+  <b>전체 진행률 — 약 70%</b>
+  <div class="prog-bar"><div class="prog-fill" style="width:70%"></div></div>
+  <div class="prog-legend">
+    핵심 엔진·리스크·검증·관측(대시보드/리포트)은 완성. 남은 30%는 <b>실데이터 연결 → 실제 주문 실행 → 실계좌 운영</b>.
+    <br><span class="badge b-done">완료</span> 코드로 구현·테스트됨 &nbsp;
+    <span class="badge b-part">부분</span> 골격만/검증필요 &nbsp;
+    <span class="badge b-todo">예정</span> 미착수 &nbsp;
+    <span class="badge b-block">차단</span> 선행조건 필요
+  </div>
+</div>
+
+<h2>① 완료된 기능 — 코드로 구현되고 테스트를 통과함</h2>
+<div class="cards">
+
+  <div class="card">
+    <h3>전략 엔진 3종 <span class="badge b-done">완료</span></h3>
+    <div class="file">strategies/mean_reversion·breakout·trend_following.py</div>
+    <p>자산 5개에 전략 3개를 배분: SPY·QQQ = 평균 회귀(이동평균 밴드), BTC = 돌파(거래량 동반 고저 이탈), GLD·USO = 추세 추종(50/200 EMA 교차).</p>
+    <div class="why">왜 필요? 시장마다 성격이 달라서, 한 규칙을 모두에 쓰면 한쪽이 계속 손해를 본다.</div>
+  </div>
+
+  <div class="card">
+    <h3>리스크 관리 <span class="badge b-done">완료</span></h3>
+    <div class="file">risk/manager.py</div>
+    <p>거래당 위험 1%(손절 거리로 수량 결정), ATR 기반 변동성 사이징, 상관 필터(SPY·QQQ 롱이면 BTC 롱 차단), 트레일링 스톱.</p>
+    <div class="why">왜 필요? 봇의 진짜 가치는 '수익'보다 '터지지 않는 것'. 이 모듈이 계좌를 지킨다.</div>
+  </div>
+
+  <div class="card">
+    <h3>실계좌 3중 잠금 <span class="badge b-done">완료</span></h3>
+    <div class="file">broker.py · resolve_mode()</div>
+    <p>기본값은 무조건 모의. 실계좌는 ①ALPACA_PAPER=false ②확인문구 ③--live 플래그가 <b>동시에</b> 있어야만 열림. 하나라도 없으면 자동으로 모의로 강등.</p>
+    <div class="why">왜 필요? 실수로 진짜 돈이 나가는 사고를 원천 차단. 전용 테스트로 8가지 조합 검증됨.</div>
+  </div>
+
+  <div class="card">
+    <h3>포트폴리오 상태 보존 <span class="badge b-done">완료</span></h3>
+    <div class="file">portfolio.py</div>
+    <p>잔고 최고점(HWM), STOPPED 상태, 처리한 신호를 파일에 저장. 껐다 켜도 정지 기준·중복 방지가 유지됨.</p>
+    <div class="why">왜 필요? 재시작 때마다 기준이 초기화되면 10% 정지장치가 무력해진다.</div>
+  </div>
+
+  <div class="card">
+    <h3>10% 서킷 브레이커 <span class="badge b-done">완료</span></h3>
+    <div class="file">risk/manager.py · portfolio.py</div>
+    <p>고점 대비 10% 하락 시 신규 주문 차단·전량 정리·STOPPED. 사람이 resume 하기 전까지 유지.</p>
+    <div class="why">왜 필요? 감정이 개입할 틈을 코드가 막는다. 최악의 손실을 상한선으로 묶는다.</div>
+  </div>
+
+  <div class="card">
+    <h3>백테스트 엔진 <span class="badge b-done">완료</span></h3>
+    <div class="file">backtest.py</div>
+    <p>신호는 해당 봉 종가로 판단하되 <b>체결은 다음 봉 시가</b>로(미래참조 방지). 수수료·슬리피지 반영. 승률·손익비·MDD·샤프·총수익 산출.</p>
+    <div class="why">왜 필요? 과거로 규칙의 구멍을 미리 찾는다. 누수 방지가 핵심.</div>
+  </div>
+
+  <div class="card">
+    <h3>벤치마크 우위 판정 <span class="badge b-done">완료</span></h3>
+    <div class="file">benchmark.py</div>
+    <p>전략이 <b>Buy&amp;Hold</b>와 <b>무작위 진입(리스크 관리 동일)</b>을 둘 다 이기는지 판정. 무작위 분포의 상위 5% 밖이어야 '우위 근거 있음'.</p>
+    <div class="why">왜 필요? 수익이 전략 덕인지 리스크 관리 덕인지 가른다. 실계좌 전 필수 관문.</div>
+  </div>
+
+  <div class="card">
+    <h3>로컬 대시보드 <span class="badge b-done">완료</span></h3>
+    <div class="file">dashboard.py</div>
+    <p>봇의 로컬 파일을 읽어 브라우저에 상황판 표시(15초 자동 새로고침). 자산곡선·낙폭·자산별 손익/승률·거래비중 차트 5종 + 리스크 신호.</p>
+    <div class="why">왜 필요? 한눈에 상태 파악. 인터넷/커넥터 없이 로컬만으로 동작.</div>
+  </div>
+
+  <div class="card">
+    <h3>아침·저녁 리포트 <span class="badge b-done">완료</span></h3>
+    <div class="file">report.py</div>
+    <p>보유 포지션·손익·리스크 플래그를 요약. 기본은 dry-run(콘솔 미리보기), 토큰 없으면 오류 대신 미리보기.</p>
+    <div class="why">왜 필요? '화면 0시간' 목표의 핵심. 하루 두 번 요약만 확인.</div>
+  </div>
+
+  <div class="card">
+    <h3>CLI + 테스트 13종 <span class="badge b-done">완료</span></h3>
+    <div class="file">main.py · tests/</div>
+    <p>backtest·benchmark·paper·live·status·stop·resume 명령. 리스크·3중잠금·미래참조 방지에 대한 자동 테스트 전부 통과.</p>
+    <div class="why">왜 필요? 안전장치가 '있다'가 아니라 '작동한다'를 기계가 증명.</div>
+  </div>
+
+</div>
+
+<h2>② 부분 구현 / 미구현 — 실거래로 가려면 남은 것</h2>
+<div class="cards">
+
+  <div class="card">
+    <h3>실데이터 연결 <span class="badge b-block">차단</span></h3>
+    <div class="file">.env · data.py</div>
+    <p>지금은 Alpaca 키가 없어 <b>합성(가짜) 데이터로 폴백</b> 중. 모든 백테스트·벤치마크 결과가 무의미한 상태.</p>
+    <div class="why">선행조건: Alpaca 모의계좌 가입 후 API 키를 .env에 입력(무료, 5~10분). <b>사용자 작업</b>.</div>
+  </div>
+
+  <div class="card">
+    <h3>실제 주문 실행 <span class="badge b-part">부분</span></h3>
+    <div class="file">broker.py · main.py (paper/live)</div>
+    <p>현재 paper --once / live 는 <b>모드 판정·안전 배너까지만</b> 구현. Alpaca에 실제 주문을 넣고 체결을 받아오는 연결부는 골격만 있음.</p>
+    <div class="why">왜 나중? 2주 모의 검증 전에는 주문 루프를 켜지 않는 게 원칙(가이드 방침).</div>
+  </div>
+
+  <div class="card">
+    <h3>연속 감시 루프 <span class="badge b-todo">예정</span></h3>
+    <div class="file">main.py</div>
+    <p>전략별 주기로 시세를 확인하며 계속 도는 루프, API 끊김·휴장 처리. 현재는 --once(1회) 골격만.</p>
+    <div class="why">왜 나중? 주문 실행이 검증된 뒤 설계하는 게 안전.</div>
+  </div>
+
+  <div class="card">
+    <h3>백테스트 내 손절 체결 <span class="badge b-part">부분</span></h3>
+    <div class="file">backtest.py</div>
+    <p>진입 시 ATR 손절가는 계산하지만, 백테스트 루프가 <b>봉 중간 손절 도달을 체결로 반영하지 않음</b>(전략 청산 신호로만 종료). 결과가 실제보다 낙관적일 수 있음.</p>
+    <div class="why">개선 필요: 손절 히트 체결을 백테스트에 넣으면 신뢰도가 올라감.</div>
+  </div>
+
+  <div class="card">
+    <h3>워크포워드 검증 <span class="badge b-todo">예정</span></h3>
+    <div class="file">(신규)</div>
+    <p>앞 기간으로 파라미터를 정하고 '보지 않은' 뒷 기간으로만 평가. 과최적화를 걸러내는 2차 관문.</p>
+    <div class="why">순서: 벤치마크에서 우위 신호가 난 자산만 여기로 넘긴다.</div>
+  </div>
+
+  <div class="card">
+    <h3>자동 중단 기준(kill-switch) 강화 <span class="badge b-todo">예정</span></h3>
+    <div class="file">risk/manager.py 확장</div>
+    <p>"실전 낙폭이 백테스트 MDD의 1.5배 초과", "최근 20거래 승률이 기대치 절반 이하" 등 <b>사전 정의된 중단 규칙</b>을 코드화.</p>
+    <div class="why">왜 필요? 실전이 백테스트에서 벗어나면 감정 개입 없이 멈추게.</div>
+  </div>
+
+  <div class="card">
+    <h3>텔레그램 실제 전송 <span class="badge b-part">부분</span></h3>
+    <div class="file">report.py</div>
+    <p>메시지 생성·dry-run 미리보기는 완료. 봇 토큰/Chat ID 발급 후 <b>실제 전송</b>은 사용자 설정 필요.</p>
+    <div class="why">선행조건: BotFather에서 봇 생성 + Chat ID 확인.</div>
+  </div>
+
+  <div class="card">
+    <h3>예약·24시간 배포 <span class="badge b-todo">예정</span></h3>
+    <div class="file">Windows 작업 스케줄러 / VPS</div>
+    <p>리포트 자동 발송 예약, 봇 24시간 가동(VPS), 죽어도 재시작. 리포트만 예약하고 주문 루프는 검증 후 별도.</p>
+    <div class="why">비용: VPS 월 5~10달러. 모의 단계까지는 내 PC로 충분.</div>
+  </div>
+
+</div>
+
+<h2>③ 로드맵 — 무엇을, 어떤 순서로 (Alex의 우선순위)</h2>
+<table>
+  <thead><tr><th>순위</th><th>할 일</th><th>완료 신호(Gate)</th><th>시점</th></tr></thead>
+  <tbody>
+    <tr><td class="pri p1">P1</td><td>Alpaca 모의계좌 키 발급 → .env 연결</td><td>잔고 조회 성공, 계좌 ACTIVE</td><td>지금 (5~10분)</td></tr>
+    <tr><td class="pri p1">P1</td><td>실데이터로 벤치마크 우위 판정</td><td>자산별 '우위 근거 있음/없음' 판정 출력</td><td>키 연결 직후</td></tr>
+    <tr><td class="pri p2">P2</td><td>우위 자산만 워크포워드 검증</td><td>보지 않은 기간에서도 성과 유지</td><td>우위 신호가 있을 때만</td></tr>
+    <tr><td class="pri p2">P2</td><td>실제 주문 실행 + 연속 루프 구현</td><td>모의계좌에 주문 접수·상태 일치</td><td>워크포워드 통과 후</td></tr>
+    <tr><td class="pri p2">P2</td><td>2주 모의투자 (하루 5분 점검)</td><td>중복주문·거래시간·재시작 이상 없음</td><td>주문 실행 완료 후</td></tr>
+    <tr><td class="pri p3">P3</td><td>kill-switch 강화 + 텔레그램/예약</td><td>중단 규칙 테스트 통과, 리포트 자동 발송</td><td>모의 기간과 병행</td></tr>
+    <tr><td class="pri p3">P3</td><td>실계좌 소액 + VPS 24시간</td><td>3중 잠금·정지 명령 실동작 확인, 소액 시작</td><td>모든 게이트 통과 후</td></tr>
+  </tbody>
+</table>
+
+<h2>④ 비목표 & 한계 — 이번엔 안 하는 것 (명확히)</h2>
+<div class="note">
+<ul>
+  <li><b>한국 주식은 대상 아님.</b> Alpaca는 미국 주식·ETF·(일부)코인만 지원. 한국 주식은 국내 증권사 API가 별도로 필요하다.</li>
+  <li><b>선물·외환 없음.</b> 금·원유도 실물 선물이 아니라 ETF(GLD·USO)로 대체.</li>
+  <li><b>'월 400만원' 보장 없음.</b> 그건 한 사람의 사례일 뿐. 이 기획의 목표는 수익이 아니라 '검증 통과'다.</li>
+  <li><b>고빈도·초단타 아님.</b> 15분~4시간봉 기준. 체결 지연·시장 충격을 다투는 영역은 범위 밖.</li>
+  <li><b>성능 한계.</b> 백테스트/벤치마크가 데이터가 길면 느리다(향후 지표 사전계산으로 개선 여지).</li>
+</ul>
+</div>
+
+<h2>⑤ 성공 지표 — '했다'가 아니라 '됐다'를 어떻게 잴까</h2>
+<table>
+  <thead><tr><th>목표</th><th>지표</th><th>통과 기준</th></tr></thead>
+  <tbody>
+    <tr><td>전략에 우위가 있는가</td><td>무작위 진입 대비 백분위</td><td>상위 5%(95 백분위) 안 + Buy&amp;Hold 초과</td></tr>
+    <tr><td>과최적화가 아닌가</td><td>워크포워드 아웃오브샘플 성과</td><td>학습기간 대비 성과 유지, 급락 없음</td></tr>
+    <tr><td>코드가 안 깨지는가</td><td>2주 모의 이상 징후 건수</td><td>중복주문·거래시간·재시작 오류 0건</td></tr>
+    <tr><td>안전장치가 작동하는가</td><td>정지 명령·3중 잠금 실동작</td><td>STOPPED 전환·모의 강등 눈으로 확인</td></tr>
+    <tr><td>운영 부담이 낮은가</td><td>하루 화면 확인 시간</td><td>리포트 2회 확인으로 충분</td></tr>
+  </tbody>
+</table>
+
+<h2>⑥ 지금 필요한 결정</h2>
+<div class="note">
+다음 한 걸음은 <b>P1 — Alpaca 키 연결</b>입니다. 이게 돼야 지금까지 만든 백테스트·벤치마크가 비로소 '진짜 판정'을 냅니다.
+그다음은 판정 결과에 달렸습니다: <b>우위 근거가 있으면</b> 워크포워드로 넘기고, <b>없으면</b> 여기서 멈추거나 전략을 다시 설계합니다.
+즉, 키 연결 → 벤치마크 판정이 이 프로젝트의 진짜 분기점입니다.
+</div>
+
+<div class="foot">
+이 문서는 제품 기획 관점의 현황 정리이며 투자 자문이 아닙니다. 매매에는 원금 손실 위험이 따르고, 판단과 책임은 본인에게 있습니다.
+</div>
+
+</body></html>
